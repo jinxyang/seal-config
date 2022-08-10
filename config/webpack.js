@@ -21,7 +21,7 @@ const CssMinimizerPlugin = requireModule('css-minimizer-webpack-plugin')
 const TerserPlugin = requireModule('terser-webpack-plugin')
 const { BundleAnalyzerPlugin } = requireModule('webpack-bundle-analyzer')
 
-const getEntry = (input, hotOptions) => {
+const getEntry = (input, hotOptions, env) => {
   const result = {
     index: _.filter(
       [
@@ -32,6 +32,7 @@ const getEntry = (input, hotOptions) => {
               timeout: 4000,
               reload: true,
               quiet: true,
+              path: hotOptions.path ?? (env ? '/__' + env : '/__webpack_hmr'),
               ..._.omit(hotOptions ?? {}, ['log', 'heartbeat']),
             }),
       ],
@@ -75,7 +76,7 @@ const getBabelLoader = (
       },
     ],
   }
-  console.log(result.include)
+
   return result
 }
 
@@ -223,7 +224,7 @@ const getWebpackConfig = (config = {}, mode = 'development') => {
     name: config.env,
     mode,
     context: getAppPath(),
-    entry: getEntry(config.input, isDev && (config.hot ?? true)),
+    entry: getEntry(config.input, isDev && (config.hot ?? {}), config.env),
     output: {
       clean: !isDev,
       ...config.webpack?.output,
